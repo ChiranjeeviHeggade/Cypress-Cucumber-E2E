@@ -2,7 +2,7 @@
 
 ## Mentor: Anshita Bhasin
 
-## Author: Chiranjeevi Heggade (https://www.linkedin.com/in/chiranjeevi-heggade/)
+## Author: Chiranjeevi Heggade
 
 # Project Overview: 
 
