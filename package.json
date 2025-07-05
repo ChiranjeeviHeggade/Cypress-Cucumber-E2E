@@ -1,0 +1,46 @@
+{
+  "name": "cypress-cucumber-project",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "------ CHROME SETTINGS ------ ": "***************************** CHROME SETTINGS  *****************************",
+    "test:runAll:chrome": "npx cypress run --browser chrome",
+    "test:smoke:chrome": "npx cypress run --env tags=@smoke --browser chrome",
+    "test:regression:chrome": "npx cypress run --env tags=@regression --browser chrome",
+    "test:smoke-regression:chrome": "npx cypress run --env tags=\"@smoke or @regression\" --browser chrome",
+    "test:negative:chrome": "npx cypress run --env tags=@negative --browser chrome",
+    "------ CLEANUP ------": "*********************** CUCUMBER REPORT CLEANUP AND CREATION  ***********************",
+    "delete-JSON-folder": "rimraf ./cypress/cucumber-json",
+    "delete-HTML-folder": "rimraf ./cucumber-html-reports",
+    "delete": "npm run delete-JSON-folder && npm run delete-HTML-folder",
+    "cucumber-report": "node cucumber-html-report.js",
+    "----------- FINAL COMMANDS ----------- ": "*********************** RUN ON CHROME  *****************************",
+    "RUN-ALL-CUCUMBER-CHROME": "npm run delete && (npm run test:runAll:chrome || true) && npm run cucumber-report",
+    "SMOKE-CUCUMBER-CHROME": "npm run delete && (npm run test:smoke:chrome || true) && npm run cucumber-report",
+    "REGRESSION-CUCUMBER-CHROME": "npm run delete && (npm run test:regression:chrome || true) && npm run cucumber-report",
+    "SMOKE-REGRESSION-CUCUMBER-CHROME": "npm run delete && (npm run test:smoke-regression:chrome || true) && npm run cucumber-report",
+    "NEGATIVE-CUCUMBER-CHROME": "npm run delete && (npm run test:negative:chrome || true) && npm run cucumber-report"
+  },
+  "cypress-cucumber-preprocessor": {
+    "json": {
+      "enabled": true,
+      "output": "cypress/cucumber-json/results.json"
+    }
+  },
+  "keywords": [],
+  "author": "Chiranjeevi Heggade",
+  "license": "ISC",
+  "description": "Cypress-Cucumber-E2E-Project",
+  "devDependencies": {
+    "@badeball/cypress-cucumber-preprocessor": "^22.2.0",
+    "@bahmutov/cypress-esbuild-preprocessor": "^2.2.5",
+    "cypress": "^14.5.1",
+    "esbuild": "^0.25.5",
+    "multiple-cucumber-html-reporter": "^3.9.3",
+    "rimraf": "^6.0.1"
+  },
+  "dependencies": {
+    "cypress-multi-reporters": "^2.0.5",
+    "dayjs": "^1.11.13"
+  }
+}

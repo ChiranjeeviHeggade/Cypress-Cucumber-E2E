@@ -1,0 +1,22 @@
+name: Cypress Cucumber E2E Tests on Chrome
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  Cypress-e2e-chrome:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Cypress Cucumber Tests in Chrome
+        uses: cypress-io/github-action@v6
+        with:
+          command: npm run RUN-ALL-CUCUMBER-CHROME
