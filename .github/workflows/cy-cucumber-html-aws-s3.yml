@@ -50,10 +50,10 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-1  # change if your bucket is in a different region
+          AWS_DEFAULT_REGION: us-east-1
         run: |
             pip install awscli
-            aws s3 cp "tmp-gh-pages/${{ steps.foldername.outputs.FOLDER_NAME }}/" "s3://my-cypress-reports-2025-chiranjeevi/reports/${{ steps.foldername.outputs.FOLDER_NAME }}/" --recursive
+            aws s3 cp "tmp-gh-pages/${{ steps.foldername.outputs.FOLDER_NAME }}/" "s3://my-cypress-reports-2025-chiranjeevi/cy-reports/${{ steps.foldername.outputs.FOLDER_NAME }}/" --recursive
         
       - name: Show S3 Report URL
         run: |
@@ -63,4 +63,3 @@ jobs:
           echo "🌐 URL:"
           echo "🔗 https://your-bucket-name.s3.amazonaws.com/reports/${{ steps.foldername.outputs.FOLDER_NAME }}/index.html"
           echo "============================================================"
-            
