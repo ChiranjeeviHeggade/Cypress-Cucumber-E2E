@@ -3,7 +3,7 @@ name: Cypress Cucumber E2E Tests on Chrome
 on:
   push:
     branches:
-      - develop
+      - main
 
 jobs:
   Cypress-e2e-chrome:

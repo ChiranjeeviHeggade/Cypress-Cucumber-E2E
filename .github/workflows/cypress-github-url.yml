@@ -3,7 +3,7 @@ name: Cypress Cucumber E2E Tests with HTML Report URL
 on:
   push:
     branches:
-      - main
+      - develop
 
 jobs:
   cypress-e2e:
