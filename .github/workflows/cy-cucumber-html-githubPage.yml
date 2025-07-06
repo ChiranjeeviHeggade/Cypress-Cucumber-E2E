@@ -1,4 +1,4 @@
-name: Cypress Cucumber E2E Tests on Chrome
+name: Cypress-Cucumber-Chrome-GitHubPages
 
 on:
   push:
