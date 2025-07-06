@@ -42,3 +42,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./reports/${{ steps.timestamp.outputs.TIMESTAMP }}
           publish_branch: gh-pages
+
+      - name: Show GitHub Pages URL
+        run: |
+          echo "Your report is available at: https://${{ github.repository_owner }}.github.io/${{ github.repository }}"
