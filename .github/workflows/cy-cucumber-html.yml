@@ -27,7 +27,8 @@ jobs:
             TIMESTAMP=$(date +'%Y%m%d-%H%M%S')
             SHORT_SHA=$(git rev-parse --short HEAD)
             # Get first 20 chars of the commit message, replace spaces with underscores
-            MSG=$(git log -1 --pretty=%s | tr ' ' '_' | cut -c1-20)
+            # MSG=$(git log -1 --pretty=%s | tr ' ' '_' | cut -c1-20)
+            MSG=$(git log -1 --pretty=%s | tr ' ' '_')
             FOLDER_NAME="${TIMESTAMP}_${MSG}_${SHORT_SHA}"
             echo "FOLDER_NAME=$FOLDER_NAME" >> $GITHUB_OUTPUT
 
@@ -61,5 +62,5 @@ jobs:
           echo "============================================================"
           echo "✅ Cypress HTML Report is Live!"
           echo "🌐 URL:"
-          echo "🔗 https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
+          echo "🔗 https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${{ steps.foldername.outputs.FOLDER_NAME }}/"
           echo "============================================================"
