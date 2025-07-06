@@ -23,6 +23,13 @@ jobs:
         with:
           command: npm run RUN-ALL-CUCUMBER-CHROME
 
+      - name: List files after test run (debug)
+        run: |
+          echo "Listing current directory:"
+          ls -al
+          echo "Listing cucumber-html-reports directory:"
+          ls -al cucumber-html-reports || echo "Folder not found!"
+
       - name: Set timestamp for report
         id: set-time
         run: echo "timestamp=$(date +'%Y-%m-%d-%H-%M-%S')" >> $GITHUB_OUTPUT
@@ -32,6 +39,12 @@ jobs:
           mkdir -p deploy/cucumber-reports/${{ steps.set-time.outputs.timestamp }}
           cp -r cucumber-html-reports/* deploy/cucumber-reports/${{ steps.set-time.outputs.timestamp }}
 
+      - name: List files after copying reports (debug)
+        run: |
+          echo "Listing deploy folder:"
+          ls -al deploy
+          ls -al deploy/cucumber-reports/${{ steps.set-time.outputs.timestamp }}
+
   deploy:
     needs: cypress-e2e
     runs-on: ubuntu-latest
@@ -40,7 +53,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages 🚀
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -49,6 +62,4 @@ jobs:
 
       - name: Show Report URL
         run: |
-         echo "Report URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/cucumber-reports/${TIMESTAMP}/index.html"
-        env:
-          TIMESTAMP: ${{ needs.cypress-e2e.outputs.timestamp }}
+          echo "Report URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/cucumber-reports/${{ needs.cypress-e2e.outputs.timestamp }}/index.html"
