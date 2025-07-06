@@ -24,7 +24,10 @@ jobs:
       - name: Generate folder name with timestamp + commit info
         id: foldername
         run: |
-            TIMESTAMP=$(date +'%Y%m%d-%H%M%S')
+            # Default UTC Time
+            # TIMESTAMP=$(date +'%Y%m%d-%H%M%S')
+            # For Time Zone Specific Settings
+            TIMESTAMP=$(TZ='America/Chicago' date +'%Y%m%d-%H%M%S')
             SHORT_SHA=$(git rev-parse --short HEAD)
             # Get first 20 chars of the commit message, replace spaces with underscores
             # MSG=$(git log -1 --pretty=%s | tr ' ' '_' | cut -c1-20)
