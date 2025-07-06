@@ -1,4 +1,4 @@
-name: Cypress-Cucumber-Chrome-S3
+name: Cypress-Cucumber-Chrome-S3-SLACK
 
 on:
   push:
