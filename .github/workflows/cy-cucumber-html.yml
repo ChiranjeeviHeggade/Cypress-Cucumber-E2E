@@ -45,4 +45,4 @@ jobs:
 
       - name: Show GitHub Pages URL
         run: |
-          echo "Your report is available at: https://${{ github.repository_owner }}.github.io/${{ github.repository }}"
+          echo "Your report is available at: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
