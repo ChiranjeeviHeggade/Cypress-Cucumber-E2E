@@ -21,20 +21,26 @@ jobs:
         with:
           command: npm run RUN-ALL-CUCUMBER-CHROME
 
-      - name: Generate timestamp
-        id: timestamp
-        run: echo "TIMESTAMP=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+      - name: Generate folder name with timestamp + commit info
+        id: foldername
+        run: |
+            TIMESTAMP=$(date +'%Y%m%d-%H%M%S')
+            SHORT_SHA=$(git rev-parse --short HEAD)
+            # Get first 20 chars of the commit message, replace spaces with underscores
+            MSG=$(git log -1 --pretty=%s | tr ' ' '_' | cut -c1-20)
+            FOLDER_NAME="${TIMESTAMP}_${MSG}_${SHORT_SHA}"
+            echo "FOLDER_NAME=$FOLDER_NAME" >> $GITHUB_OUTPUT
 
       - name: Prepare timestamped report directory
         run: |
-          mkdir -p tmp-gh-pages/${{ steps.timestamp.outputs.TIMESTAMP }}
-          mv cucumber-html-reports/* tmp-gh-pages/${{ steps.timestamp.outputs.TIMESTAMP }}/
+          mkdir -p tmp-gh-pages/${{ steps.foldername.outputs.FOLDER_NAME }}
+          mv cucumber-html-reports/* tmp-gh-pages/${{ steps.foldername.outputs.FOLDER_NAME }}/
 
       - name: Upload Cucumber HTML Report Artifact
         uses: actions/upload-artifact@v4
         with:
           name: cucumber-html-test-report
-          path: reports/${{ steps.timestamp.outputs.TIMESTAMP }}
+          path: reports/${{ steps.foldername.outputs.FOLDER_NAME }}
 
       - name: Deploy HTML report to GitHub Pages
         run: |
@@ -46,7 +52,7 @@ jobs:
 
           cd gh-pages
           git add .
-          git commit -m "Add report ${{ steps.timestamp.outputs.TIMESTAMP }}"
+          git commit -m "Add report ${{ steps.foldername.outputs.FOLDER_NAME }}"
           git push origin gh-pages
 
       - name: Show GitHub Pages URL
