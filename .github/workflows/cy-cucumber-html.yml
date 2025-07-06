@@ -38,6 +38,8 @@ jobs:
 
       - name: Deploy HTML report to GitHub Pages
         run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git clone --branch gh-pages "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" gh-pages
 
           cp -r tmp-gh-pages/* gh-pages/
