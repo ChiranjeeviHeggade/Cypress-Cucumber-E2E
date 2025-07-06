@@ -69,5 +69,5 @@ jobs:
       - name: Show Report URL
         run: |
           echo "Report URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/cucumber-reports/${{ needs.cypress-e2e.outputs.timestamp }}/index.html"
-          env:
+        env:
           TIMESTAMP: ${{ needs.cypress-e2e.outputs.timestamp }}
