@@ -56,6 +56,8 @@ jobs:
             aws s3 cp "tmp-gh-pages/${{ steps.foldername.outputs.FOLDER_NAME }}/" "s3://my-cypress-reports-2025-chiranjeevi/cy-reports/${{ steps.foldername.outputs.FOLDER_NAME }}/" --recursive
         
       - name: Show S3 Report URL
+        env: 
+          AWS_DEFAULT_REGION: us-east-1
         run: |
           echo ""
           echo "============================================================"
