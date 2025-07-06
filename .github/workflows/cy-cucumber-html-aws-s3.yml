@@ -53,7 +53,7 @@ jobs:
           AWS_DEFAULT_REGION: us-east-1  # change if your bucket is in a different region
         run: |
             pip install awscli
-            aws s3 cp "reports/${{ steps.timestamp.outputs.TIMESTAMP }}/" "s3://your-bucket-name/reports/${{ steps.timestamp.outputs.TIMESTAMP }}/" --recursive
+            aws s3 cp "tmp-gh-pages/${{ steps.foldername.outputs.FOLDER_NAME }}/" "s3://your-bucket-name/reports/${{ steps.foldername.outputs.FOLDER_NAME }}/" --recursive
         
       - name: Show S3 Report URL
         run: |
