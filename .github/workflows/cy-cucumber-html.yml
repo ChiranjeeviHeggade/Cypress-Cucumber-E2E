@@ -21,15 +21,24 @@ jobs:
         with:
           command: npm run RUN-ALL-CUCUMBER-CHROME
 
-      - name: Upload Cucumber HTML Report
+      - name: Generate timestamp
+        id: timestamp
+        run: echo "TIMESTAMP=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+
+      - name: Prepare timestamped report directory
+        run: |
+          mkdir -p reports/${{ steps.timestamp.outputs.TIMESTAMP }}
+          mv cucumber-html-reports/* reports/${{ steps.timestamp.outputs.TIMESTAMP }}/
+
+      - name: Upload Cucumber HTML Report Artifact
         uses: actions/upload-artifact@v4
         with:
           name: cucumber-html-test-report
-          path: cucumber-html-reports
+          path: reports/${{ steps.timestamp.outputs.TIMESTAMP }}
 
       - name: Deploy HTML report to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./cucumber-html-reports
+          publish_dir: ./reports/${{ steps.timestamp.outputs.TIMESTAMP }}
           publish_branch: gh-pages
