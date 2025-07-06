@@ -27,8 +27,8 @@ jobs:
 
       - name: Prepare timestamped report directory
         run: |
-          mkdir -p reports/${{ steps.timestamp.outputs.TIMESTAMP }}
-          mv cucumber-html-reports/* reports/${{ steps.timestamp.outputs.TIMESTAMP }}/
+          mkdir -p tmp-gh-pages/${{ steps.timestamp.outputs.TIMESTAMP }}
+          mv cucumber-html-reports/* tmp-gh-pages/${{ steps.timestamp.outputs.TIMESTAMP }}/
 
       - name: Upload Cucumber HTML Report Artifact
         uses: actions/upload-artifact@v4
