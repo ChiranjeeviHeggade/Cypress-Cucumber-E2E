@@ -3,7 +3,7 @@ name: Cypress Cucumber E2E Tests on Chrome
 on:
   push:
     branches:
-      - main
+      - develop
 
 jobs:
   Cypress-e2e-chrome:
@@ -24,5 +24,5 @@ jobs:
       - name: Upload Cucumber HTML Report
         uses: actions/upload-artifact@v4
         with:
-          name: cucumber-report-new
+          name: cucumber-html-test-report
           path: cucumber-html-reports

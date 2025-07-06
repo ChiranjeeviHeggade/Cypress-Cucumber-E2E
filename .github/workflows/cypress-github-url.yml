@@ -1,0 +1,43 @@
+name: Cypress Cucumber E2E Tests with HTML Report URL
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  cypress-e2e:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Cypress Cucumber Tests
+        uses: cypress-io/github-action@v6
+        with:
+          command: npm run RUN-ALL-CUCUMBER-CHROME
+
+      - name: Set timestamp for report
+        id: set-time
+        run: echo "timestamp=$(date +'%Y-%m-%d-%H-%M-%S')" >> $GITHUB_OUTPUT
+
+      - name: Copy report to timestamped folder
+        run: |
+          mkdir -p deploy/cucumber-reports/${{ steps.set-time.outputs.timestamp }}
+          cp -r cucumber-html-reports/* deploy/cucumber-reports/${{ steps.set-time.outputs.timestamp }}
+
+      - name: Deploy to GitHub Pages 🚀
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: deploy
+
+      - name: Show Report URL
+        run: |
+            echo "Report URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/cucumber-reports/${{ steps.set-time.outputs.timestamp }}/index.html"
+      
