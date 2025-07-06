@@ -45,6 +45,12 @@ jobs:
           ls -al deploy
           ls -al deploy/cucumber-reports/${{ steps.set-time.outputs.timestamp }}
 
+      - name: Upload deploy folder as artifact (optional debug)
+        uses: actions/upload-artifact@v4
+        with:
+            name: deploy-folder
+            path: deploy/
+
   deploy:
     needs: cypress-e2e
     runs-on: ubuntu-latest
@@ -53,7 +59,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Deploy to GitHub Pages 🚀
+      - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -63,3 +69,5 @@ jobs:
       - name: Show Report URL
         run: |
           echo "Report URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/cucumber-reports/${{ needs.cypress-e2e.outputs.timestamp }}/index.html"
+          env:
+          TIMESTAMP: ${{ needs.cypress-e2e.outputs.timestamp }}
