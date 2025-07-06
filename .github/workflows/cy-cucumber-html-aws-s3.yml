@@ -1,0 +1,68 @@
+name: Cypress Cucumber E2E Tests on Chrome
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  Cypress-e2e-chrome-aws-s3:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Cypress Cucumber Tests in Chrome
+        uses: cypress-io/github-action@v6
+        with:
+          command: npm run RUN-ALL-CUCUMBER-CHROME
+
+      - name: Generate folder name with timestamp + commit info
+        id: foldername
+        run: |
+            # Default UTC Time
+            # TIMESTAMP=$(date +'%Y%m%d-%H%M%S')
+            # For Time Zone Specific Settings
+            TIMESTAMP=$(TZ='America/Chicago' date +'%Y%m%d-%H%M%S')
+            SHORT_SHA=$(git rev-parse --short HEAD)
+            # Get first 20 chars of the commit message, replace spaces with underscores
+            # MSG=$(git log -1 --pretty=%s | tr ' ' '_' | cut -c1-20)
+            MSG=$(git log -1 --pretty=%s | tr ' ' '_')
+            FOLDER_NAME="${TIMESTAMP}_${MSG}_${SHORT_SHA}"
+            echo "FOLDER_NAME=$FOLDER_NAME" >> $GITHUB_OUTPUT
+
+      - name: Prepare timestamped report directory
+        run: |
+          mkdir -p tmp-gh-pages/${{ steps.foldername.outputs.FOLDER_NAME }}
+          mv cucumber-html-reports/* tmp-gh-pages/${{ steps.foldername.outputs.FOLDER_NAME }}/
+
+      - name: Upload Cucumber HTML Report Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cucumber-html-test-report
+          path: reports/${{ steps.foldername.outputs.FOLDER_NAME }}
+
+      - name: Upload HTML Report to AWS S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1  # change if your bucket is in a different region
+        run: |
+            pip install awscli
+            aws s3 cp tmp-gh-pages/${{ steps.foldername.outputs.FOLDER_NAME }}/ \
+              s3://my-cypress-reports-2025-chiranjeevi /reports/${{ steps.foldername.outputs.FOLDER_NAME }}/ \
+              --recursive
+        
+      - name: Show S3 Report URL
+        run: |
+          echo ""
+          echo "============================================================"
+          echo "✅ Cypress HTML Report uploaded to S3!"
+          echo "🌐 URL:"
+          echo "🔗 https://your-bucket-name.s3.amazonaws.com/reports/${{ steps.foldername.outputs.FOLDER_NAME }}/index.html"
+          echo "============================================================"
+            
