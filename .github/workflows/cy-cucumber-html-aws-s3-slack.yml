@@ -61,10 +61,59 @@ jobs:
           echo "🔗 https://my-cypress-reports-2025-chiranjeevi.s3.${AWS_DEFAULT_REGION}.amazonaws.com/cy-reports/${{ steps.foldername.outputs.FOLDER_NAME }}/index.html"
           echo "============================================================"
 
-      - name: Notify Slack with Report URL
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          AWS_DEFAULT_REGION: us-east-1
-        run: |
-          REPORT_URL="https://my-cypress-reports-2025-chiranjeevi.s3.${AWS_DEFAULT_REGION}.amazonaws.com/cy-reports/${{ steps.foldername.outputs.FOLDER_NAME }}/index.html"
-          curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"Cypress report is available here: <${REPORT_URL}>\"}" $SLACK_WEBHOOK_URL
+          - name: Notify Slack with Report URL
+          env:
+            SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+            AWS_DEFAULT_REGION: us-east-1
+          run: |
+            REPORT_URL="https://my-cypress-reports-2025-chiranjeevi.s3.${AWS_DEFAULT_REGION}.amazonaws.com/cy-reports/${{ steps.foldername.outputs.FOLDER_NAME }}/index.html"
+            COMMIT_MSG=$(git log -1 --pretty=%s)
+            SHORT_SHA=$(git rev-parse --short HEAD)
+            BRANCH_NAME="${GITHUB_REF##*/}"
+            TIMESTAMP=$(TZ='America/Chicago' date +'%Y-%m-%d %H:%M:%S %Z')
+        
+            curl -X POST -H 'Content-type: application/json' --data "{
+              \"blocks\": [
+                {
+                  \"type\": \"header\",
+                  \"text\": {
+                    \"type\": \"plain_text\",
+                    \"text\": \"🚀 Cypress Test Report Available!\",
+                    \"emoji\": true
+                  }
+                },
+                {
+                  \"type\": \"section\",
+                  \"fields\": [
+                    {
+                      \"type\": \"mrkdwn\",
+                      \"text\": \":label: *Branch:*\n${BRANCH_NAME}\"
+                    },
+                    {
+                      \"type\": \"mrkdwn\",
+                      \"text\": \":bookmark: *Commit:*\n${COMMIT_MSG} \`(${SHORT_SHA})\`\"
+                    },
+                    {
+                      \"type\": \"mrkdwn\",
+                      \"text\": \":calendar: *Timestamp:*\n${TIMESTAMP}\"
+                    }
+                  ]
+                },
+                {
+                  \"type\": \"actions\",
+                  \"elements\": [
+                    {
+                      \"type\": \"button\",
+                      \"text\": {
+                        \"type\": \"plain_text\",
+                        \"text\": \"🔍 View HTML Report\",
+                        \"emoji\": true
+                      },
+                      \"url\": \"${REPORT_URL}\",
+                      \"style\": \"primary\"
+                    }
+                  ]
+                }
+              ]
+            }" $SLACK_WEBHOOK_URL
+        
