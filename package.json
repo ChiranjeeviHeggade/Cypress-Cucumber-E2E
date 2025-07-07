@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "lint": "eslint .",
     "------ CHROME SETTINGS ------ ": "***************************** CHROME SETTINGS  *****************************",
     "test:runAll:chrome": "npx cypress run --browser chrome",
     "test:smoke:chrome": "npx cypress run --env tags=@smoke --browser chrome",
@@ -34,8 +35,11 @@
   "devDependencies": {
     "@badeball/cypress-cucumber-preprocessor": "^22.2.0",
     "@bahmutov/cypress-esbuild-preprocessor": "^2.2.5",
+    "@eslint/js": "^9.30.1",
     "cypress": "^14.5.1",
     "esbuild": "^0.25.5",
+    "eslint": "^9.30.1",
+    "globals": "^16.3.0",
     "multiple-cucumber-html-reporter": "^3.9.3",
     "rimraf": "^6.0.1"
   },

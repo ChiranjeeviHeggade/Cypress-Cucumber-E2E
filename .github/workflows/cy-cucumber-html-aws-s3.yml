@@ -16,6 +16,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Run ESLint (Static Code Analysis)
+        run: npm run lint
+
       - name: Run Cypress Cucumber Tests in Chrome
         uses: cypress-io/github-action@v6
         with:
