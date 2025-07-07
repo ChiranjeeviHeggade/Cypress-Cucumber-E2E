@@ -65,8 +65,8 @@ jobs:
       - name: Show GitHub Pages URL
         run: |
           echo ""
-          echo "============================================================"
+          echo "============================================================="
           echo "✅ Cypress HTML Report is Live!"
           echo "🌐 URL:"
           echo "🔗 https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${{ steps.foldername.outputs.FOLDER_NAME }}/"
-          echo "============================================================"
+          echo "============================================================="

@@ -60,8 +60,8 @@ jobs:
           AWS_DEFAULT_REGION: us-east-1
         run: |
           echo ""
-          echo "============================================================"
+          echo "============================================================="
           echo "✅ Cypress HTML Report uploaded to S3!"
           echo "🌐 URL:"
           echo "🔗 https://my-cypress-reports-2025-chiranjeevi.s3.${AWS_DEFAULT_REGION}.amazonaws.com/cy-reports/${{ steps.foldername.outputs.FOLDER_NAME }}/index.html"
-          echo "============================================================"
+          echo "============================================================="
