@@ -3,7 +3,7 @@ name: Cypress-Cucumber-Chrome-S3-SLACK
 on:
   push:
     branches:
-      - develop
+      - Develop
 
 jobs:
   Cypress-e2e-chrome-aws-s3:
