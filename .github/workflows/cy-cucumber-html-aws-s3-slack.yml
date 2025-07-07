@@ -3,10 +3,10 @@ name: Cypress-Cucumber-Chrome-S3-SLACK
 on:
   push:
     branches:
-      - Develop
+      - main
 
 jobs:
-  Cypress-e2e-chrome-aws-s3:
+  Cypress-e2e-chrome-aws-s3-slack:
     runs-on: ubuntu-latest
 
     steps:
