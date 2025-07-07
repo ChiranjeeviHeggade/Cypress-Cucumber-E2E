@@ -61,19 +61,19 @@ jobs:
           echo "🔗 https://my-cypress-reports-2025-chiranjeevi.s3.${AWS_DEFAULT_REGION}.amazonaws.com/cy-reports/${{ steps.foldername.outputs.FOLDER_NAME }}/index.html"
           echo "============================================================"
 
-          - name: Notify Slack with Report URL
-          env:
-            SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-            AWS_DEFAULT_REGION: us-east-1
-          run: |
-            REPORT_URL="https://my-cypress-reports-2025-chiranjeevi.s3.${AWS_DEFAULT_REGION}.amazonaws.com/cy-reports/${{ steps.foldername.outputs.FOLDER_NAME }}/index.html"
-            COMMIT_MSG=$(git log -1 --pretty=%s)
-            SHORT_SHA=$(git rev-parse --short HEAD)
-            BRANCH_NAME="${GITHUB_REF##*/}"
-            TIMESTAMP=$(TZ='America/Chicago' date +'%Y-%m-%d %H:%M:%S %Z')
+      - name: Notify Slack with Report URL
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          AWS_DEFAULT_REGION: us-east-1
+        run: |
+          REPORT_URL="https://my-cypress-reports-2025-chiranjeevi.s3.${AWS_DEFAULT_REGION}.amazonaws.com/cy-reports/${{ steps.foldername.outputs.FOLDER_NAME }}/index.html"
+          COMMIT_MSG=$(git log -1 --pretty=%s)
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          BRANCH_NAME="${GITHUB_REF##*/}"
+          TIMESTAMP=$(TZ='America/Chicago' date +'%Y-%m-%d %H:%M:%S %Z')
         
-            curl -X POST -H 'Content-type: application/json' --data "{
-              \"blocks\": [
+          curl -X POST -H 'Content-type: application/json' --data "{
+          \"blocks\": [
                 {
                   \"type\": \"header\",
                   \"text\": {
