@@ -1,0 +1,37 @@
+name: Parallel-Execution
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  Smoke-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Cypress Cucumber Tests in Chrome
+        uses: cypress-io/github-action@v6
+        with:
+          command: npm run SMOKE-CUCUMBER-CHROME
+
+  Regression-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Cypress Cucumber Tests in Chrome
+        uses: cypress-io/github-action@v6
+        with:
+          command: npm run REGRESSION-CUCUMBER-CHROME

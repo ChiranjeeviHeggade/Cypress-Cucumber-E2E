@@ -1,0 +1,25 @@
+name: Multi-OS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  Cypress-e2e-chrome-multi-OS:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{matrix.os}}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Cypress Cucumber Tests in Chrome
+        uses: cypress-io/github-action@v6
+        with:
+          command: npm run RUN-ALL-CUCUMBER-CHROME
