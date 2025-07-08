@@ -3,7 +3,7 @@ name: Smoke-Regression-Parallel-Execution
 on:
   push:
     branches:
-      - main
+      - develop
 
 jobs:
   Smoke-test:
