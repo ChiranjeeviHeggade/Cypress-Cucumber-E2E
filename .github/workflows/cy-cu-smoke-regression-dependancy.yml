@@ -38,6 +38,7 @@ jobs:
 
   RunAll-Test:
     runs-on: ubuntu-latest
+    if: ${{always()}}
     needs: [Smoke-test,Regression-test]
     steps:
       - name: Checkout repository
