@@ -3,7 +3,7 @@ name: Cypress-Cucumber-Chrome-GitHubPages-Multi-OS
 on:
   push:
     branches:
-      - develop
+      - sample
 
   schedule:
     - cron: '0 2 * * *'
