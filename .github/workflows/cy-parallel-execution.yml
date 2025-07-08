@@ -1,9 +1,9 @@
-name: Dependancy-Smoke-Regression-Execution
+name: Parallel-Execution
 
 on:
   push:
     branches:
-      - sample
+      - main
 
 jobs:
   Smoke-test:
@@ -23,7 +23,7 @@ jobs:
 
   Regression-test:
     runs-on: ubuntu-latest
-    needs: [Smoke-test]
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
