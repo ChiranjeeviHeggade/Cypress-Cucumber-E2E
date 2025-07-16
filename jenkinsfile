@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment {
-        GITHUB_TOKEN = credentials('github-pat')        // GitHub PAT for gh-pages push
+        GITHUB_TOKEN = credentials('developer-pat')        // GitHub PAT for gh-pages push
     }
 
     stages {
