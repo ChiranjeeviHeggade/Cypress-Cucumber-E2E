@@ -2,7 +2,11 @@ pipeline {
     agent any
 
     tools {
-        nodejs 'NodeJS'  // Ensure this is the same label as in Jenkins global tools config
+        nodejs 'NodeJS'
+    }
+
+    environment {
+        GITHUB_TOKEN = credentials('developer-pat') // Used earlier, can be removed if not needed
     }
 
     stages {
@@ -38,31 +42,30 @@ pipeline {
                     def reportDir = 'cucumber-html-reports'
                     def ghPagesDir = 'gh-pages-temp'
 
-                    // Clean up previous run
+                    // Clean any previous temp directory
                     bat "IF EXIST ${ghPagesDir} rmdir /s /q ${ghPagesDir}"
                     bat "mkdir ${ghPagesDir}"
 
-                    // Use credentials securely
-                    withCredentials([usernamePassword(credentialsId: 'qa-pat', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
-                        // Clone the gh-pages branch using token
-                        bat "git clone --branch gh-pages https://${GIT_USER}:${GIT_TOKEN}@github.com/ChiranjeeviHeggade/Cypress-Cucumber-E2E.git ${ghPagesDir}"
-                    }
+                    // Use the GitHub token stored as secret text
+                    withCredentials([string(credentialsId: 'qa-pat', variable: 'GITHUB_TOKEN')]) {
+                        // Clone gh-pages branch using GitHub token
+                        bat "git clone --branch gh-pages https://x-access-token:${GITHUB_TOKEN}@github.com/ChiranjeeviHeggade/Cypress-Cucumber-E2E.git ${ghPagesDir}"
 
-                    dir(ghPagesDir) {
-                        // Clean all old files safely
-                        bat 'powershell -Command "Get-ChildItem -Path . -Recurse -Force | Remove-Item -Recurse -Force"'
-                    }
+                        // Clean old files and copy new report
+                        dir(ghPagesDir) {
+                            bat "git pull origin gh-pages"
+                            bat 'powershell -Command "Get-ChildItem -Path . -Recurse -Force | Remove-Item -Recurse -Force"'
+                        }
 
-                    // Copy the new report into gh-pages temp folder
-                    bat "xcopy ${reportDir} ${ghPagesDir} /E /I /Y"
+                        bat "xcopy ${reportDir} ${ghPagesDir} /E /I /Y"
 
-                    dir(ghPagesDir) {
-                        // Commit and push the updated report
-                        bat 'git add --all'
-                        bat 'git config user.name "jenkins"'
-                        bat 'git config user.email "jenkins@local"'
-                        bat 'git commit -m "Update Cucumber Report - Build #${env.BUILD_NUMBER}" || echo No changes to commit'
-                        bat 'git push origin gh-pages'
+                        dir(ghPagesDir) {
+                            bat 'git add .'
+                            bat 'git config user.name "jenkins"'
+                            bat 'git config user.email "jenkins@local"'
+                            bat "git commit -m \"Update Cucumber Report - Build #${env.BUILD_NUMBER}\" || echo No changes to commit"
+                            bat "git push origin gh-pages"
+                        }
                     }
                 }
             }
