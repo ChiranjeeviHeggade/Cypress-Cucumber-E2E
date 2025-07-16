@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        nodejs 'NodeJS-24' // only if you configured NodeJS tool
+        nodejs 'NodeJS' // only if you configured NodeJS tool
     }
 
     stages {
