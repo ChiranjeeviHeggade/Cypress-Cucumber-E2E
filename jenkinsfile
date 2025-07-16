@@ -1,0 +1,47 @@
+pipeline {
+    agent any
+
+    environment {
+        CYPRESS_CACHE_FOLDER = "${WORKSPACE}/.cache/Cypress"
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git branch: 'qa1', url: 'https://github.com/your-org/your-repo.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm ci' // or 'npm install' if ci not supported
+            }
+        }
+
+        stage('Run Cypress Tests') {
+            steps {
+                sh 'npx cypress run --browser chrome'
+            }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: 'cypress/videos/**/*.mp4', allowEmptyArchive: true
+        }
+        success {
+            slackSend(
+                channel: '#qa-reports',
+                color: 'good',
+                message: "✅ *Cypress Tests Passed* — ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+            )
+        }
+        failure {
+            slackSend(
+                channel: '#qa-reports',
+                color: 'danger',
+                message: "❌ *Cypress Tests Failed* — ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+            )
+        }
+    }
+}
