@@ -1,31 +1,41 @@
 pipeline {
     agent any
 
-    tools {
-        nodejs 'NodeJS'
+    environment {
+        CYPRESS_CACHE_FOLDER = "${WORKSPACE}/.cache/Cypress"
     }
 
-    environment {
-        GITHUB_TOKEN = credentials('developer-pat') // Used earlier, can be removed if not needed
+    tools {
+        nodejs 'node18'
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                git branch: 'main', url: 'https://github.com/ChiranjeeviHeggade/Cypress-Cucumber-E2E.git'
-            }
-        }
-
         stage('Install Dependencies') {
             steps {
-                bat 'npm install'
+                ansiColor('xterm') {
+                    withEnv(["PATH+NODE=${tool 'node18'}/bin"]) {
+                        bat 'npm ci'
+                    }
+                }
             }
         }
 
-        stage('Run Smoke Tests') {
+        stage('Run Cypress Tests') {
             steps {
                 ansiColor('xterm') {
-                    bat 'npm run SMOKE-CUCUMBER-CHROME'
+                    withEnv(["PATH+NODE=${tool 'node18'}/bin"]) {
+                        bat 'npx cypress run'
+                    }
+                }
+            }
+        }
+
+        stage('Generate Cucumber Report') {
+            steps {
+                ansiColor('xterm') {
+                    withEnv(["PATH+NODE=${tool 'node18'}/bin"]) {
+                        bat 'node cucumber-html-report.js'
+                    }
                 }
             }
         }
@@ -42,23 +52,23 @@ pipeline {
                     def reportDir = 'cucumber-html-reports'
                     def ghPagesDir = 'gh-pages-temp'
 
-                    // Clean any previous temp directory
                     bat "IF EXIST ${ghPagesDir} rmdir /s /q ${ghPagesDir}"
                     bat "mkdir ${ghPagesDir}"
 
-                    // Use the GitHub token stored as secret text
                     withCredentials([string(credentialsId: 'qa-pat', variable: 'GITHUB_TOKEN')]) {
-                        // Clone gh-pages branch using GitHub token
+                        // Clone gh-pages branch
                         bat "git clone --branch gh-pages https://x-access-token:${GITHUB_TOKEN}@github.com/ChiranjeeviHeggade/Cypress-Cucumber-E2E.git ${ghPagesDir}"
 
-                        // Clean old files and copy new report
+                        // Clean previous content
                         dir(ghPagesDir) {
-                            bat "git pull origin gh-pages"
+                            bat 'git pull origin gh-pages'
                             bat 'powershell -Command "Get-ChildItem -Path . -Recurse -Force | Remove-Item -Recurse -Force"'
                         }
 
-                        bat "xcopy ${reportDir} ${ghPagesDir} /E /I /Y"
+                        // Copy new report
+                        bat "xcopy ${reportDir}\\* ${ghPagesDir} /E /I /Y"
 
+                        // Commit & Push
                         dir(ghPagesDir) {
                             bat 'git add .'
                             bat 'git config user.name "jenkins"'
@@ -73,23 +83,13 @@ pipeline {
     }
 
     post {
-        success {
+        always {
             script {
                 slackSend(
                     channel: '#all-jenkins-test-reports',
-                    color: 'good',
-                    message: "✅ Smoke Tests Passed — ${env.JOB_NAME} #${env.BUILD_NUMBER}\n" +
-                             "📄 Report: https://ChiranjeeviHeggade.github.io/Cypress-Cucumber-E2E/index.html"
-                )
-            }
-        }
-
-        failure {
-            script {
-                slackSend(
-                    channel: '#all-jenkins-test-reports',
-                    color: 'danger',
-                    message: "❌ Smoke Tests Failed — ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+                    color: currentBuild.currentResult == 'SUCCESS' ? 'good' : 'danger',
+                    message: "Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}: ${env.JOB_NAME} (<${env.BUILD_URL}|Open>)",
+                    tokenCredentialId: 'jenkins-slack-plugin'
                 )
             }
         }
