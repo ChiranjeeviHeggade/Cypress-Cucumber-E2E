@@ -5,10 +5,6 @@ pipeline {
         nodejs 'NodeJS'
     }
 
-    environment {
-        GITHUB_TOKEN = credentials('developer-pat') // Used earlier, can be removed if not needed
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -35,41 +31,6 @@ pipeline {
                 archiveArtifacts artifacts: 'cucumber-html-reports/**', fingerprint: true
             }
         }
-
-        stage('Publish to GitHub Pages') {
-            steps {
-                script {
-                    def reportDir = 'cucumber-html-reports'
-                    def ghPagesDir = 'gh-pages-temp'
-
-                    // Clean any previous temp directory
-                    bat "IF EXIST ${ghPagesDir} rmdir /s /q ${ghPagesDir}"
-                    bat "mkdir ${ghPagesDir}"
-
-                    // Use the GitHub token stored as secret text
-                    withCredentials([string(credentialsId: 'qa-pat', variable: 'GITHUB_TOKEN')]) {
-                        // Clone gh-pages branch using GitHub token
-                        bat "git clone --branch gh-pages https://x-access-token:${GITHUB_TOKEN}@github.com/ChiranjeeviHeggade/Cypress-Cucumber-E2E.git ${ghPagesDir}"
-
-                        // Clean old files and copy new report
-                        dir(ghPagesDir) {
-                            bat "git pull origin gh-pages"
-                            bat 'powershell -Command "Get-ChildItem -Path . -Recurse -Force | Remove-Item -Recurse -Force"'
-                        }
-
-                        bat "xcopy ${reportDir} ${ghPagesDir} /E /I /Y"
-
-                        dir(ghPagesDir) {
-                            bat 'git add .'
-                            bat 'git config user.name "jenkins"'
-                            bat 'git config user.email "jenkins@local"'
-                            bat "git commit -m \"Update Cucumber Report - Build #${env.BUILD_NUMBER}\" || echo No changes to commit"
-                            bat "git push origin gh-pages"
-                        }
-                    }
-                }
-            }
-        }
     }
 
     post {
@@ -79,7 +40,7 @@ pipeline {
                     channel: '#all-jenkins-test-reports',
                     color: 'good',
                     message: "✅ Smoke Tests Passed — ${env.JOB_NAME} #${env.BUILD_NUMBER}\n" +
-                             "📄 Report: https://ChiranjeeviHeggade.github.io/Cypress-Cucumber-E2E/index.html"
+                             "📄 Report: ${env.BUILD_URL}artifact/cucumber-html-reports/index.html"
                 )
             }
         }
