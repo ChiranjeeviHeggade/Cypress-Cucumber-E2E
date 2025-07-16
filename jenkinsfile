@@ -40,7 +40,6 @@ pipeline {
                 color: 'good',
                 message: "✅ Smoke Tests Passed — ${env.JOB_NAME} #${env.BUILD_NUMBER}\n" +
                          "<${env.BUILD_URL}artifact/cucumber-html-reports/index.html|View Cucumber Report>"
-
             )
         }
         failure {
