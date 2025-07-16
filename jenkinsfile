@@ -7,7 +7,6 @@ pipeline {
 
     environment {
         GITHUB_TOKEN = credentials('github-pat')        // GitHub PAT for gh-pages push
-        SLACK_WEBHOOK = credentials('slack-webhook-url') // Optional: if using curl-based Slack
     }
 
     stages {
