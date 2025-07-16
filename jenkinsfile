@@ -50,7 +50,7 @@ pipeline {
                 channel: '#all-jenkins-test-reports',
                 color: 'good',
                 message: "✅ Smoke Tests Passed — ${env.JOB_NAME} #${env.BUILD_NUMBER}\n" 
-                    + "<${env.BUILD_URL}Cucumber_Report/|View Cucumber Report>"
+                    + "<https://six-camels-sneeze.loca.lt/job/${env.JOB_NAME}/${env.BUILD_NUMBER}/artifact/cucumber-html-reports/index.html|View Cucumber Report>"
             )
         }
         failure {
