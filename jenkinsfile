@@ -1,22 +1,23 @@
 pipeline {
     agent any
+
     tools {
-        nodejs 'NodeJS'
+        nodejs 'NodeJS'  // Ensure this is the same label as in Jenkins global tools config
     }
-    environment {
-        GITHUB_TOKEN = credentials('developer-pat')        // GitHub PAT for gh-pages push
-    }
+
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/ChiranjeeviHeggade/Cypress-Cucumber-E2E.git'
             }
         }
+
         stage('Install Dependencies') {
             steps {
                 bat 'npm install'
             }
         }
+
         stage('Run Smoke Tests') {
             steps {
                 ansiColor('xterm') {
@@ -24,52 +25,50 @@ pipeline {
                 }
             }
         }
+
         stage('Archive Cucumber Report') {
             steps {
                 archiveArtifacts artifacts: 'cucumber-html-reports/**', fingerprint: true
             }
         }
+
         stage('Publish to GitHub Pages') {
-            environment {
-                GITHUB_TOKEN = credentials('qa-pat') // or developer-pat depending on your job
-            }
             steps {
                 script {
                     def reportDir = 'cucumber-html-reports'
                     def ghPagesDir = 'gh-pages-temp'
-                    
-                    // Remove old gh-pages-temp folder if exists
+
+                    // Clean up previous run
                     bat "IF EXIST ${ghPagesDir} rmdir /s /q ${ghPagesDir}"
                     bat "mkdir ${ghPagesDir}"
-                    
-                    // Clone gh-pages branch
-                    bat "git clone --branch gh-pages https://${GITHUB_TOKEN}@github.com/ChiranjeeviHeggade/Cypress-Cucumber-E2E.git ${ghPagesDir}"
-                    
-                    dir(ghPagesDir) {
-                        // Pull latest updates (just in case)
-                        bat "git pull origin gh-pages"
-                        
-                        // Clean old files inside gh-pages-temp safely
-                        // Using a PowerShell command to delete all files and folders inside
-                        bat """
-                        powershell -Command "Get-ChildItem -Path . -Recurse -Force | Remove-Item -Recurse -Force"
-                        """
+
+                    // Use credentials securely
+                    withCredentials([usernamePassword(credentialsId: 'qa-pat', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
+                        // Clone the gh-pages branch using token
+                        bat "git clone --branch gh-pages https://${GIT_USER}:${GIT_TOKEN}@github.com/ChiranjeeviHeggade/Cypress-Cucumber-E2E.git ${ghPagesDir}"
                     }
-                    
-                    // Copy new reports into gh-pages-temp
-                    bat "xcopy ${reportDir} ${ghPagesDir} /E /I /Y"
-                    
+
                     dir(ghPagesDir) {
+                        // Clean all old files safely
+                        bat 'powershell -Command "Get-ChildItem -Path . -Recurse -Force | Remove-Item -Recurse -Force"'
+                    }
+
+                    // Copy the new report into gh-pages temp folder
+                    bat "xcopy ${reportDir} ${ghPagesDir} /E /I /Y"
+
+                    dir(ghPagesDir) {
+                        // Commit and push the updated report
                         bat 'git add --all'
-                        bat "git config user.name \"jenkins\""
-                        bat "git config user.email \"jenkins@local\""
-                        bat "git commit -m \"Update Cucumber Report - Build #${env.BUILD_NUMBER}\" || echo No changes to commit"
-                        bat "git push origin gh-pages"
+                        bat 'git config user.name "jenkins"'
+                        bat 'git config user.email "jenkins@local"'
+                        bat 'git commit -m "Update Cucumber Report - Build #${env.BUILD_NUMBER}" || echo No changes to commit'
+                        bat 'git push origin gh-pages'
                     }
                 }
             }
         }
     }
+
     post {
         success {
             script {
@@ -81,6 +80,7 @@ pipeline {
                 )
             }
         }
+
         failure {
             script {
                 slackSend(
