@@ -5,6 +5,11 @@ pipeline {
         nodejs 'NodeJS'
     }
 
+    environment {
+        GITHUB_TOKEN = credentials('github-pat')        // GitHub PAT for gh-pages push
+        SLACK_WEBHOOK = credentials('slack-webhook-url') // Optional: if using curl-based Slack
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -33,28 +38,27 @@ pipeline {
         }
 
         stage('Publish to GitHub Pages') {
-            environment {
-                GITHUB_TOKEN = credentials('github-pat') // your PAT credential ID
-            }
             steps {
                 script {
                     def reportDir = 'cucumber-html-reports'
                     def ghPagesDir = 'gh-pages-temp'
 
                     // Clean old temp dir
-                    bat "rmdir /s /q ${ghPagesDir}"
+                    bat "IF EXIST ${ghPagesDir} rmdir /s /q ${ghPagesDir}"
                     bat "mkdir ${ghPagesDir}"
 
                     // Clone gh-pages branch
                     bat "git clone --branch gh-pages https://${GITHUB_TOKEN}@github.com/ChiranjeeviHeggade/Cypress-Cucumber-E2E.git ${ghPagesDir}"
 
-                    // Remove old reports and copy new ones
-                    bat "rmdir /s /q ${ghPagesDir}\\*"
+                    // Clear and copy reports
+                    bat "del /f /q ${ghPagesDir}\\*.*"
                     bat "xcopy ${reportDir} ${ghPagesDir} /E /I /Y"
 
-                    // Commit and push changes
+                    // Commit and push
                     dir(ghPagesDir) {
                         bat 'git add .'
+                        bat "git config user.name \"jenkins\""
+                        bat "git config user.email \"jenkins@local\""
                         bat "git commit -m \"Update Cucumber Report - Build #${env.BUILD_NUMBER}\" || echo No changes to commit"
                         bat 'git push origin gh-pages'
                     }
@@ -65,19 +69,23 @@ pipeline {
 
     post {
         success {
-            slackSend(
-                channel: '#all-jenkins-test-reports',
-                color: 'good',
-                message: "✅ Smoke Tests Passed — ${env.JOB_NAME} #${env.BUILD_NUMBER}\n" +
-                         "Cucumber Report: https://ChiranjeeviHeggade.github.io/Cypress-Cucumber-E2E/index.html"
-            )
+            script {
+                slackSend(
+                    channel: '#all-jenkins-test-reports',
+                    color: 'good',
+                    message: "✅ Smoke Tests Passed — ${env.JOB_NAME} #${env.BUILD_NUMBER}\n" +
+                             "📄 Report: https://ChiranjeeviHeggade.github.io/Cypress-Cucumber-E2E/index.html"
+                )
+            }
         }
         failure {
-            slackSend(
-                channel: '#all-jenkins-test-reports',
-                color: 'danger',
-                message: "❌ Smoke Tests Failed — ${env.JOB_NAME} #${env.BUILD_NUMBER}"
-            )
+            script {
+                slackSend(
+                    channel: '#all-jenkins-test-reports',
+                    color: 'danger',
+                    message: "❌ Smoke Tests Failed — ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+                )
+            }
         }
     }
 }
