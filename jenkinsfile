@@ -39,7 +39,8 @@ pipeline {
                 channel: '#all-jenkins-test-reports',
                 color: 'good',
                 message: "✅ Smoke Tests Passed — ${env.JOB_NAME} #${env.BUILD_NUMBER}\n" +
-                         "Cucumber HTML report: ${env.BUILD_URL}artifact/cucumber-html-reports/index.html"
+                         "<${env.BUILD_URL}artifact/cucumber-html-reports/index.html|View Cucumber Report>"
+
             )
         }
         failure {
