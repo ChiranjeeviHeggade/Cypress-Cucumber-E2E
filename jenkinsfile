@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        nodejs 'NodeJS' // only if you configured NodeJS tool
+        nodejs 'NodeJS'
     }
 
     stages {
@@ -21,8 +21,14 @@ pipeline {
         stage('Run Smoke Tests') {
             steps {
                 ansiColor('xterm') {
-                    bat 'npm run REGRESSION-CUCUMBER-CHROME'
+                    bat 'npm run SMOKE-CUCUMBER-CHROME'
                 }
+            }
+        }
+
+        stage('Archive Cucumber Report') {
+            steps {
+                archiveArtifacts artifacts: 'cucumber-html-reports/**', fingerprint: true
             }
         }
     }
@@ -32,7 +38,8 @@ pipeline {
             slackSend(
                 channel: '#all-jenkins-test-reports',
                 color: 'good',
-                message: "✅ Smoke Tests Passed — ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+                message: "✅ Smoke Tests Passed — ${env.JOB_NAME} #${env.BUILD_NUMBER}\n" +
+                         "Cucumber HTML report: ${env.BUILD_URL}artifact/cucumber-html-reports/index.html"
             )
         }
         failure {
