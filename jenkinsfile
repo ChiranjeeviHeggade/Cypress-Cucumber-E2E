@@ -1,27 +1,22 @@
 pipeline {
     agent any
-
     tools {
         nodejs 'NodeJS'
     }
-
     environment {
         GITHUB_TOKEN = credentials('developer-pat')        // GitHub PAT for gh-pages push
     }
-
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/ChiranjeeviHeggade/Cypress-Cucumber-E2E.git'
             }
         }
-
         stage('Install Dependencies') {
             steps {
                 bat 'npm install'
             }
         }
-
         stage('Run Smoke Tests') {
             steps {
                 ansiColor('xterm') {
@@ -29,51 +24,48 @@ pipeline {
                 }
             }
         }
-
         stage('Archive Cucumber Report') {
             steps {
                 archiveArtifacts artifacts: 'cucumber-html-reports/**', fingerprint: true
             }
         }
-
         stage('Publish to GitHub Pages') {
+            environment {
+                GITHUB_TOKEN = credentials('qa-pat') // or developer-pat depending on your job
+            }
             steps {
                 script {
                     def reportDir = 'cucumber-html-reports'
                     def ghPagesDir = 'gh-pages-temp'
-
-                    // Clean old temp dir
                     bat "IF EXIST ${ghPagesDir} rmdir /s /q ${ghPagesDir}"
                     bat "mkdir ${ghPagesDir}"
-
-                    // Clone gh-pages branch
                     bat "git clone --branch gh-pages https://${GITHUB_TOKEN}@github.com/ChiranjeeviHeggade/Cypress-Cucumber-E2E.git ${ghPagesDir}"
-
-                    // Clear and copy reports
-                    bat "del /f /q ${ghPagesDir}\\*.*"
+                    // Pull latest changes to avoid push conflicts
+                    dir(ghPagesDir) {
+                        bat "git pull origin gh-pages"
+                        bat "rmdir /s /q *"  // clear old files, but be careful with this on Windows
+                    }
+                    // Copy new report files
                     bat "xcopy ${reportDir} ${ghPagesDir} /E /I /Y"
-
-                    // Commit and push
                     dir(ghPagesDir) {
                         bat 'git add .'
                         bat "git config user.name \"jenkins\""
                         bat "git config user.email \"jenkins@local\""
                         bat "git commit -m \"Update Cucumber Report - Build #${env.BUILD_NUMBER}\" || echo No changes to commit"
-                        bat 'git push origin gh-pages'
+                        bat "git push origin gh-pages"
                     }
                 }
             }
         }
     }
-
     post {
         success {
             script {
                 slackSend(
                     channel: '#all-jenkins-test-reports',
                     color: 'good',
-                    message: "✅ Smoke Tests Passed — ${env.JOB_NAME} #${env.BUILD_NUMBER}\n" +
-                             "📄 Report: https://ChiranjeeviHeggade.github.io/Cypress-Cucumber-E2E/index.html"
+                    message: "✅ Smoke Tests Passed — ${env.JOB_NAME} #${env.BUILD_NUMBER}\n" 
+                        + "📄 Report: https://ChiranjeeviHeggade.github.io/Cypress-Cucumber-E2E/index.html"
                 )
             }
         }
