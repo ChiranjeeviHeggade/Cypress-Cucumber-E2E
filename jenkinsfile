@@ -20,7 +20,9 @@ pipeline {
 
         stage('Run Smoke Tests') {
             steps {
-                bat 'npm run REGRESSION-CUCUMBER-CHROME'
+                ansiColor('xterm') {
+                    bat 'npm run REGRESSION-CUCUMBER-CHROME'
+                }
             }
         }
     }
