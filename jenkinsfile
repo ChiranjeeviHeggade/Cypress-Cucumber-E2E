@@ -1,23 +1,19 @@
 pipeline {
     agent any
-
     tools {
         nodejs 'NodeJS'
     }
-
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/ChiranjeeviHeggade/Cypress-Cucumber-E2E.git'
             }
         }
-
         stage('Install Dependencies') {
             steps {
                 bat 'npm install'
             }
         }
-
         stage('Run Smoke Tests') {
             steps {
                 ansiColor('xterm') {
@@ -25,13 +21,11 @@ pipeline {
                 }
             }
         }
-
         stage('Archive Cucumber Report') {
             steps {
                 archiveArtifacts artifacts: 'cucumber-html-reports/**', fingerprint: true
             }
         }
-
         stage('Publish Cucumber Report') {
             steps {
                 publishHTML (target: [
@@ -44,15 +38,19 @@ pipeline {
                 ])
             }
         }
+        stage('Print Build URL') {
+            steps {
+                echo "BUILD_URL is: ${env.BUILD_URL}"
+            }
+        }
     }
-
     post {
         success {
             slackSend(
                 channel: '#all-jenkins-test-reports',
                 color: 'good',
-                message: "✅ Smoke Tests Passed — ${env.JOB_NAME} #${env.BUILD_NUMBER}\n" +
-                         "<${env.BUILD_URL}Cucumber_Report/|View Cucumber Report>"
+                message: "✅ Smoke Tests Passed — ${env.JOB_NAME} #${env.BUILD_NUMBER}\n" 
+                    + "<${env.BUILD_URL}Cucumber_Report/|View Cucumber Report>"
             )
         }
         failure {
