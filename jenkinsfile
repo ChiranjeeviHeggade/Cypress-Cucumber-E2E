@@ -34,7 +34,7 @@ pipeline {
 
         stage('Publish to GitHub Pages') {
             environment {
-                GITHUB_TOKEN = credentials('github-pat') // your PAT credential ID
+                GITHUB_TOKEN = credentials('Cypress-Jenkins-Job') // your PAT credential ID
             }
             steps {
                 script {
