@@ -9,11 +9,13 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/ChiranjeeviHeggade/Cypress-Cucumber-E2E.git'
             }
         }
+
         stage('Install Dependencies') {
             steps {
                 bat 'npm install'
             }
         }
+
         stage('Run Smoke Tests') {
             steps {
                 ansiColor('xterm') {
@@ -21,14 +23,15 @@ pipeline {
                 }
             }
         }
-        stage('Fix & Archive Report') {
+
+        stage('Fix & Archive Cucumber Report') {
             steps {
                 script {
-                    // Copy report to a staging folder
                     bat 'xcopy /E /I /Y cucumber-html-reports fixed-report'
-                    // Inject <base> tag into the copied version
+
                     def baseHref = "${env.BUILD_URL}artifact/fixed-report/"
                     def indexFile = "fixed-report\\index.html"
+
                     if (fileExists(indexFile)) {
                         def html = readFile(indexFile)
                         if (!html.contains('<base href=')) {
@@ -37,28 +40,38 @@ pipeline {
                             echo "✅ Injected <base> tag into fixed-report/index.html"
                         }
                     }
-                    // Archive the modified copy
+
                     archiveArtifacts artifacts: 'fixed-report/**', fingerprint: true
                 }
             }
         }
-        stage('Archive Cucumber Report') {
+
+        stage('Publish Report to Jenkins UI') {
             steps {
-                archiveArtifacts artifacts: 'cucumber-html-reports/**', fingerprint: true
+                publishHTML(target: [
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: 'fixed-report',
+                    reportFiles: 'index.html',
+                    reportName: 'Cucumber Test Report'
+                ])
             }
         }
     }
+
     post {
         success {
             script {
                 slackSend(
                     channel: '#all-jenkins-test-reports',
                     color: 'good',
-                    message: "✅ Smoke Tests Passed — ${env.JOB_NAME} #${env.BUILD_NUMBER}\n"
- + "📄 Report: <${env.BUILD_URL}artifact/fixed-report/index.html|Click here to see the Cucumber Report>"
+                    message: "✅ Smoke Tests Passed — ${env.JOB_NAME} #${env.BUILD_NUMBER}\n" +
+                             "📄 Report: <${env.BUILD_URL}Cucumber_20Test_20Report/|Click here to see the Cucumber Report>"
                 )
             }
         }
+
         failure {
             script {
                 slackSend(
