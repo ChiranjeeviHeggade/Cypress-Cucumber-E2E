@@ -25,23 +25,25 @@ pipeline {
             steps {
                 script {
                     def baseHref = "${env.BUILD_URL}artifact/cucumber-html-reports/"
-                    def indexFile = "cucumber-html-reports\\index.html"  // Windows-style path
+                    def indexFile = "cucumber-html-reports\\index.html"
+                    echo "🔍 Checking for index.html at: ${indexFile}"
+                    echo "🔍 WORKSPACE: ${env.WORKSPACE}"
                     if (fileExists(indexFile)) {
-                        echo "✅ Found index.html. Attempting to inject <base> tag..."
+                        echo "✅ Found index.html"
                         def html = readFile(indexFile)
+                        echo "🔍 Original content starts with:\n" + html.take(200)
                         if (!html.contains('<base href=')) {
                             html = html.replaceFirst(/<head>/, "<head><base href='${baseHref}'>")
                             writeFile file: indexFile, text: html
-                            echo "✅ Successfully injected <base> tag into HTML report."
+                            echo "✅ Successfully injected <base> tag"
                         } else {
-                            echo "ℹ️ HTML already contains <base> tag."
+                            echo "ℹ️ Already contains <base> tag"
                         }
-                        // Optional debug: print first few lines of updated HTML
-                        def updatedHtml = readFile(indexFile)
-                        echo "🔍 First 200 characters of updated index.html:\n" 
-                            + updatedHtml.take(200)
+                        def updated = readFile(indexFile)
+                        echo "🔍 Updated content starts with:\n" + updated.take(200)
                     } else {
-                        echo "❌ index.html not found at path: ${indexFile}"
+                        echo "❌ index.html NOT FOUND at expected path"
+                        bat "dir /s cucumber-html-reports"
                     }
                 }
             }
@@ -58,8 +60,8 @@ pipeline {
                 slackSend(
                     channel: '#all-jenkins-test-reports',
                     color: 'good',
-                    message: "✅ Smoke Tests Passed — ${env.JOB_NAME} #${env.BUILD_NUMBER}\n" 
-                        + "📄 Report: <${env.BUILD_URL}artifact/cucumber-html-reports/index.html|Click here to see the Cucumber Report>"
+                    message: "✅ Smoke Tests Passed — ${env.JOB_NAME} #${env.BUILD_NUMBER}\n"
+ + "📄 Report: <${env.BUILD_URL}artifact/cucumber-html-reports/index.html|Click here to see the Cucumber Report>"
                 )
             }
         }
