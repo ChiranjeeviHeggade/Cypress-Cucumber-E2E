@@ -1,23 +1,19 @@
 pipeline {
     agent any
-
     tools {
         nodejs 'NodeJS'
     }
-
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/ChiranjeeviHeggade/Cypress-Cucumber-E2E.git'
             }
         }
-
         stage('Install Dependencies') {
             steps {
                 bat 'npm install'
             }
         }
-
         stage('Run Smoke Tests') {
             steps {
                 ansiColor('xterm') {
@@ -25,26 +21,57 @@ pipeline {
                 }
             }
         }
-
         stage('Archive Cucumber Report') {
             steps {
                 archiveArtifacts artifacts: 'cucumber-html-reports/**', fingerprint: true
             }
         }
-    }
+        stage('Publish to GitHub Pages') {
+            steps {
+                script {
+                    def reportDir = 'cucumber-html-reports'
+                    def ghPagesDir = 'gh-pages-temp'
+                    // Remove any previous temp directory
+                    bat "IF EXIST ${ghPagesDir} rmdir /s /q ${ghPagesDir}"
+                    bat "mkdir ${ghPagesDir}"
+                    withCredentials([string(credentialsId: 'qa-pat', variable: 'GITHUB_TOKEN')]) {
+                        // Clone gh-pages branch
+                        bat "git clone --branch gh-pages https://x-access-token:${GITHUB_TOKEN}@github.com/ChiranjeeviHeggade/Cypress-Cucumber-E2E.git ${ghPagesDir}"
+                        dir(ghPagesDir) {
+                            // Delete all folders and files except .git
+                            bat '''
+                    for /d %%i in (*) do (
+                        if /i not "%%i"==".git" rmdir /s /q "%%i"
+                    )
+                    for %%i in (*) do (
+                        if /i not "%%i"==".git" del /f /q "%%i"
+                    )
+                    '''
+                            // Copy new report files
+                            bat "xcopy /E /I /Y ..\\${reportDir}\\* .\\"
 
+                    bat 'git add .'
+                    bat 'git config user.name "jenkins"'
+                    bat 'git config user.email "jenkins@local"'
+                    bat "git commit - m \"Update Cucumber Report - Build #${env.BUILD_NUMBER}\" || echo No changes to commit"
+                            bat 'git push origin gh-pages'
+                        }
+                    }
+                }
+            }
+        }
+    }
     post {
         success {
             script {
                 slackSend(
                     channel: '#all-jenkins-test-reports',
                     color: 'good',
-                    message: "✅ Smoke Tests Passed — ${env.JOB_NAME} #${env.BUILD_NUMBER}\n" +
-                             "📄 Report: <${env.BUILD_URL}artifact/cucumber-html-reports/index.html|Click here to see the Cucumber Report>"
+                    message: "✅ Smoke Tests Passed — ${env.JOB_NAME} #${env.BUILD_NUMBER}\n" 
+                        + "📄 Report: <${env.BUILD_URL}artifact/cucumber-html-reports/index.html|Click here to see the Cucumber Report>"
                 )
             }
         }
-
         failure {
             script {
                 slackSend(
