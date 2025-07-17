@@ -9,11 +9,13 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/ChiranjeeviHeggade/Cypress-Cucumber-E2E.git'
             }
         }
+
         stage('Install Dependencies') {
             steps {
                 bat 'npm install'
             }
         }
+
         stage('Run Smoke Tests') {
             steps {
                 ansiColor('xterm') {
@@ -21,23 +23,48 @@ pipeline {
                 }
             }
         }
+
+        stage('Fix Report Base Path') {
+            steps {
+                script {
+                    def baseHref = "${env.BUILD_URL}artifact/cucumber-html-reports/"
+                    def indexFile = 'cucumber-html-reports/index.html'
+
+                    if (fileExists(indexFile)) {
+                        def html = readFile(indexFile)
+                        if (!html.contains('<base href=')) {
+                            html = html.replaceFirst(/<head>/, "<head><base href='${baseHref}'>")
+                            writeFile file: indexFile, text: html
+                            echo "✅ Injected <base> tag into Cucumber HTML report."
+                        } else {
+                            echo "ℹ️ Report already contains a <base> tag."
+                        }
+                    } else {
+                        echo "⚠️ index.html not found at expected path: ${indexFile}"
+                    }
+                }
+            }
+        }
+
         stage('Archive Cucumber Report') {
             steps {
                 archiveArtifacts artifacts: 'cucumber-html-reports/**', fingerprint: true
             }
         }
     }
+
     post {
         success {
             script {
                 slackSend(
                     channel: '#all-jenkins-test-reports',
                     color: 'good',
-                    message: "✅ Smoke Tests Passed — ${env.JOB_NAME} #${env.BUILD_NUMBER}\n" 
-                        + "📄 Report: <${env.BUILD_URL}artifact/cucumber-html-reports/index.html|Click here to see the Cucumber Report>"
+                    message: "✅ Smoke Tests Passed — ${env.JOB_NAME} #${env.BUILD_NUMBER}\n" +
+                             "📄 Report: <${env.BUILD_URL}artifact/cucumber-html-reports/index.html|Click here to see the Cucumber Report>"
                 )
             }
         }
+
         failure {
             script {
                 slackSend(
